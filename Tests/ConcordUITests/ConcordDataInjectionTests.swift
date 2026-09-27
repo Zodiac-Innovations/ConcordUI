@@ -26,9 +26,9 @@ func venueRegisteredDisplayInheritsCurrentData() {
 
     let presentation = venue.displayPresentation(tag: 1)
 
-    #expect(builderData === persistent)
-    #expect(presentation?.data === persistent)
-    #expect(venue.currentData === persistent)
+    #expect((builderData as? ConcordStringData) === persistent)
+    #expect((presentation?.data as? ConcordStringData) === persistent)
+    #expect((venue.currentData as? ConcordStringData) === persistent)
     #expect(platform.displayedPresentation === presentation)
 }
 
@@ -48,9 +48,9 @@ func venueInjectedDataDoesNotReplaceCurrentData() {
 
     let presentation = venue.displayPresentation(tag: 1, data: injected)
 
-    #expect(builderData === injected)
-    #expect(presentation?.data === injected)
-    #expect(venue.currentData === persistent)
+    #expect((builderData as? ConcordStringData) === injected)
+    #expect((presentation?.data as? ConcordStringData) === injected)
+    #expect((venue.currentData as? ConcordStringData) === persistent)
 
     (presentation?.data as? ConcordStringData)?.value = "changed in presentation"
     #expect(injected.value == "changed in presentation")
@@ -71,10 +71,10 @@ func mainVenueInheritsApplicationCurrentData() {
 
     let presentation = application.mainVenue.displayPresentation(tag: 10)
 
-    #expect(builderData === persistent)
-    #expect(presentation?.data === persistent)
-    #expect(application.currentData === persistent)
-    #expect(application.mainVenue.currentData === persistent)
+    #expect((builderData as? ConcordStringData) === persistent)
+    #expect((presentation?.data as? ConcordStringData) === persistent)
+    #expect((application.currentData as? ConcordStringData) === persistent)
+    #expect((application.mainVenue.currentData as? ConcordStringData) === persistent)
 }
 
 @Test("Main Venue explicit data does not replace Application currentData")
@@ -92,8 +92,8 @@ func mainVenueInjectedDataDoesNotReplaceApplicationCurrentData() {
 
     let presentation = application.mainVenue.displayPresentation(tag: 10, data: injected)
 
-    #expect(builderData === injected)
-    #expect(presentation?.data === injected)
-    #expect(application.currentData === persistent)
-    #expect(application.mainVenue.currentData === persistent)
+    #expect((builderData as? ConcordStringData) === injected)
+    #expect((presentation?.data as? ConcordStringData) === injected)
+    #expect((application.currentData as? ConcordStringData) === persistent)
+    #expect((application.mainVenue.currentData as? ConcordStringData) === persistent)
 }
