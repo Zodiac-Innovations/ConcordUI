@@ -437,7 +437,7 @@ func launchResetAPIsAffectNextLaunch() {
 @Test("About button invokes the current app About action")
 func aboutButtonInvokesCurrentFeature() {
     let application = ConcordApplication(platform: VenueTestPlatform())
-    let button = concordAboutFeatureButton(for: application)
+    let button = application.concordAboutFeatureButton(flavor: .icon)
     var invocations = 0
 
     #expect(application.aboutFeature == nil)
@@ -451,7 +451,7 @@ func aboutButtonInvokesCurrentFeature() {
     button.activate()
     #expect(invocations == 2)
 
-    let titledButton = concordAboutFeatureButton(for: application)
+    let titledButton = application.concordAboutFeatureButton(flavor: .icon)
     #expect(titledButton.accessibilityText == "About Demo")
 
     application.aboutFeature = nil
@@ -526,7 +526,7 @@ func genericFeatureConfigurationUsesManagedVenue() {
 @Test("Welcome button invokes the current app feature")
 func welcomeButtonInvokesCurrentFeature() {
     let application = ConcordApplication(platform: VenueTestPlatform())
-    let button = concordWelcomeFeatureButton(for: application)
+    let button = application.concordWelcomeFeatureButton(flavor: .icon)
     var invocations = 0
 
     #expect(application.welcomeFeature == nil)
@@ -585,7 +585,7 @@ func standardWelcomeUsesAdaptiveOverlappingImages() {
 @Test("Get Started button invokes the current app feature")
 func getStartedButtonInvokesCurrentFeature() {
     let application = ConcordApplication(platform: VenueTestPlatform())
-    let button = concordGetStartedFeatureButton(for: application)
+    let button = application.concordGetStartedFeatureButton(flavor: .icon)
     var invocations = 0
 
     #expect(application.getStartedFeature == nil)
@@ -602,7 +602,7 @@ func getStartedButtonInvokesCurrentFeature() {
     button.activate()
     #expect(invocations == 2)
 
-    let titledButton = concordGetStartedFeatureButton(for: application)
+    let titledButton = application.concordGetStartedFeatureButton(flavor: .icon)
     #expect(titledButton.accessibilityText == "Welcome")
 }
 
@@ -684,7 +684,7 @@ func standardGetStartedLeavesAccessLeftWithoutCenterAccess() {
 @Test("What's New button invokes the current app feature")
 func whatsNewButtonInvokesCurrentFeature() {
     let application = ConcordApplication(platform: VenueTestPlatform())
-    let button = concordWhatsNewFeatureButton(for: application)
+    let button = application.concordWhatsNewFeatureButton(flavor: .icon)
     var invocations = 0
 
     #expect(application.whatsNewFeature == nil)
@@ -753,7 +753,7 @@ func standardWhatsNewDisplaysContent() {
 @Test("FAQ button invokes the current app feature")
 func faqButtonInvokesCurrentFeature() {
     let application = ConcordApplication(platform: VenueTestPlatform())
-    let button = concordFAQFeatureButton(for: application)
+    let button = application.concordFAQFeatureButton(flavor: .icon)
     var invocations = 0
 
     #expect(application.faqFeature == nil)
@@ -773,7 +773,7 @@ func standardFAQDisplaysQuestionsAndAccess() {
     let platform = VenueTestPlatform()
     let application = ConcordApplication(platform: platform)
     application.useStandardFAQFeature(
-        questions: [
+        data: ConcordFAQFeatureData(sections: [
             ConcordQAListData(
                 title: "Getting Started",
                 questions: [
@@ -798,7 +798,7 @@ func standardFAQDisplaysQuestionsAndAccess() {
                     )
                 ]
             )
-        ],
+        ]),
         accessList: [
             ConcordAccessData(title: "License", link: "https://example.com/license")
         ]
@@ -807,8 +807,7 @@ func standardFAQDisplaysQuestionsAndAccess() {
     application.showFAQFeature()
 
     let venue = application.secondaryVenue(id: ConcordVenueID.faq)
-    let root = venue?.currentPresentation?.root as? ConcordVStack
-    let workStack = root?.elements.first as? ConcordWorkStack
+    let workStack = venue?.currentPresentation?.root as? ConcordWorkStack
     let groupTitle = workStack?.main.elements.first as? ConcordText
     let firstQuestion = workStack?.main.elements.dropFirst().first as? ConcordExpander
     let answer = firstQuestion?.elements.first as? ConcordText
