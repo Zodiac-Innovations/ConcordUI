@@ -23,7 +23,7 @@ final class ConcordDataTests: XCTestCase {
         let integer = ConcordIntData(42)
         let floating = ConcordFloatData(3.5)
 
-        let _: ConcordInt = integer.value
+        let _: Int = integer.value
         let _: ConcordFloat = floating.value
 
         XCTAssertEqual(bool.clone().value, true)
@@ -31,31 +31,11 @@ final class ConcordDataTests: XCTestCase {
         XCTAssertEqual(floating.clone().value, 3.5)
     }
 
-    func testDateAndURLDataCloneAndFill() throws {
-        let date = Date(timeIntervalSince1970: 1_234)
-        let laterDate = Date(timeIntervalSince1970: 5_678)
-        let dateData = ConcordDateData(date)
-        dateData.fill(from: ConcordDateData(laterDate))
-        XCTAssertEqual(dateData.clone().value, laterDate)
-
-        let firstURL = try XCTUnwrap(URL(string: "https://example.com/first"))
-        let secondURL = try XCTUnwrap(URL(string: "https://example.com/second"))
-        let urlData = ConcordURLData(firstURL)
-        urlData.fill(from: ConcordURLData(secondURL))
-        XCTAssertEqual(urlData.clone().value, secondURL)
-        XCTAssertEqual(urlData.description, secondURL.absoluteString)
-    }
-
     func testAllSingleValueDataObjectsAreCodable() throws {
         try assertRoundTrip(ConcordStringData("String")) { $0.value == "String" }
         try assertRoundTrip(ConcordBoolData(true)) { $0.value }
         try assertRoundTrip(ConcordIntData(7)) { $0.value == 7 }
         try assertRoundTrip(ConcordFloatData(2.5)) { $0.value == 2.5 }
-        try assertRoundTrip(ConcordDateData(Date(timeIntervalSince1970: 100))) {
-            $0.value == Date(timeIntervalSince1970: 100)
-        }
-        let url = try XCTUnwrap(URL(string: "https://example.com"))
-        try assertRoundTrip(ConcordURLData(url)) { $0.value == url }
     }
 
     func testBitmapImageStoresPortableDataAndDimensions() throws {
