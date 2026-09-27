@@ -7,9 +7,10 @@ import AVFoundation
 import ConcordUI
 import Foundation
 
-private let concordAppleAudioController = ConcordAppleAudioController()
+@MainActor private let concordAppleAudioController = ConcordAppleAudioController()
 
-private final class ConcordAppleAudioController: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate, @unchecked Sendable {
+@MainActor
+private final class ConcordAppleAudioController: NSObject, @preconcurrency AVAudioPlayerDelegate, @preconcurrency AVSpeechSynthesizerDelegate {
     private var audioPlayer: AVAudioPlayer?
     private let speechSynthesizer = AVSpeechSynthesizer()
     private var soundCompletion: ConcordPlaybackCompletion?
@@ -145,25 +146,33 @@ private final class ConcordAppleAudioController: NSObject, AVAudioPlayerDelegate
 }
 
 extension ConcordApplePlatform: ConcordPlatformAudioSupport {
-    public var canPlaySoundContent: Bool { concordAppleAudioController.canPlaySound }
-    public var canSpeakTextContent: Bool { concordAppleAudioController.canSpeakText }
+    public var canPlaySoundContent: Bool { true }
+    public var canSpeakTextContent: Bool { true }
 
     @discardableResult
     public func playSoundContent(_ data: Data, fileExtension: String, speed: ConcordFloat, completion: @escaping ConcordPlaybackCompletion) -> Bool {
-        concordAppleAudioController.playSound(
-            data,
-            fileExtension: fileExtension,
-            speed: speed,
-            completion: completion
-        )
+        MainActor.assumeIsolated {
+            concordAppleAudioController.playSound(
+                data,
+                fileExtension: fileExtension,
+                speed: speed,
+                completion: completion
+            )
+        }
     }
 
-    public func cancelSoundContent() { concordAppleAudioController.cancelSound() }
+    public func cancelSoundContent() {
+        MainActor.assumeIsolated { concordAppleAudioController.cancelSound() }
+    }
 
     @discardableResult
     public func speakTextContent(_ text: String, speed: ConcordFloat, completion: @escaping ConcordPlaybackCompletion) -> Bool {
-        concordAppleAudioController.speakText(text, speed: speed, completion: completion)
+        MainActor.assumeIsolated {
+            concordAppleAudioController.speakText(text, speed: speed, completion: completion)
+        }
     }
 
-    public func cancelSpeechContent() { concordAppleAudioController.cancelSpeech() }
+    public func cancelSpeechContent() {
+        MainActor.assumeIsolated { concordAppleAudioController.cancelSpeech() }
+    }
 }
