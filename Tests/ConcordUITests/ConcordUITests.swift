@@ -45,7 +45,7 @@ func applicationStoresApplicationFunctionality() {
         .helpPresentation(position: 2, title: "What's New") { ConcordLabel("Changes") }
         .helpPresentation(position: 3, title: "Contact") { ConcordLabel("Contact") }
         .applicationMenu(title: "Project")
-        .applicationPresentation(title: "Import") { ConcordLabel("Import") }
+        .applicationPresentation(position: 1, title: "Import") { ConcordLabel("Import") }
         .applicationPresentation(position: 2, title: "Export") { ConcordLabel("Export") }
 
     #expect(configuredApplication === application)
@@ -64,7 +64,7 @@ func applicationStoresApplicationFunctionality() {
 }
 
 @Test("Main Venue displays presentation")
-func mainVenueDisplaysPresentation() {
+func coreMainVenueDisplaysPresentation() {
     let platform = TestPlatform(); let application = ConcordApplication(platform: platform)
     let presentation = ConcordPresentation { ConcordText("Hello") }
     application.mainVenue.displayPresentation(presentation)
@@ -81,7 +81,7 @@ func elementChangeRefreshesCurrentPresentation() {
 }
 
 @Test("Venue registration builds fresh presentations")
-func venueRegistrationBuildsFreshPresentations() {
+func coreVenueRegistrationBuildsFreshPresentations() {
     let platform = TestPlatform(); let data = TestData("venue")
     let application = ConcordApplication(platform: platform, currentData: data)
     application.mainVenue.registerPresentation(tag: 100) { suppliedData in
