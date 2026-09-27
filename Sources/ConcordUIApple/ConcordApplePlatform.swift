@@ -1504,8 +1504,13 @@ private struct ConcordAppleABStackView: View {
                     aFraction: element.aFraction,
                     spacing: CGFloat(element.spacing)
                 ) {
-                    ConcordAppleRenderer.render(element.a, revision: revision)
-                    ConcordAppleRenderer.render(element.b, revision: revision)
+                    ForEach(0..<2, id: \.self) { index in
+                        if index == 0 {
+                            ConcordAppleRenderer.render(element.a, revision: revision)
+                        } else {
+                            ConcordAppleRenderer.render(element.b, revision: revision)
+                        }
+                    }
                 }
             } else {
                 HStack(alignment: .top, spacing: element.spacing) {
