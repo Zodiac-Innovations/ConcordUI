@@ -39,38 +39,41 @@ public struct ConcordAppleRootView: View {
 
         GeometryReader { geometry in
             ScrollView(.vertical) {
-                Group {
-                    if let presentation = platform.currentPresentation {
-                        #if os(macOS)
-                        if let workStack = presentation.root as? ConcordWorkStack {
-                            // A desktop WorkStack owns its interior padding so its footer
-                            // can extend all the way to the presentation window edges.
-                            ConcordAppleRenderer.render(workStack, revision: revision)
-                        } else if let rootStack = presentation.root as? ConcordVStack,
-                                  rootStack.elements.count == 1,
-                                  let workStack = rootStack.elements.first as? ConcordWorkStack {
-                            ConcordAppleRenderer.render(workStack, revision: revision)
-                        } else {
-                            ConcordAppleRenderer.render(presentation.root, revision: revision)
-                                .padding(.horizontal, 10)
-                        }
-                        #else
-                        ConcordAppleRenderer.render(presentation.root, revision: revision)
-                            .padding(.horizontal, 10)
-                        #endif
-                    }
-                }
-                .frame(
-                    maxWidth: .infinity,
-                    minHeight: geometry.size.height,
-                    alignment: .topLeading
-                )
+                presentationContent(revision: revision)
+                    .frame(
+                        maxWidth: .infinity,
+                        minHeight: geometry.size.height,
+                        alignment: .topLeading
+                    )
             }
             .frame(
                 maxWidth: .infinity,
                 maxHeight: .infinity,
                 alignment: .topLeading
             )
+        }
+    }
+
+    @ViewBuilder
+    private func presentationContent(revision: UInt) -> some View {
+        if let presentation = platform.currentPresentation {
+            #if os(macOS)
+            if let workStack = presentation.root as? ConcordWorkStack {
+                // A desktop WorkStack owns its interior padding so its footer
+                // can extend all the way to the presentation window edges.
+                ConcordAppleRenderer.render(workStack, revision: revision)
+            } else if let rootStack = presentation.root as? ConcordVStack,
+                      rootStack.elements.count == 1,
+                      let workStack = rootStack.elements.first as? ConcordWorkStack {
+                ConcordAppleRenderer.render(workStack, revision: revision)
+            } else {
+                ConcordAppleRenderer.render(presentation.root, revision: revision)
+                    .padding(.horizontal, 10)
+            }
+            #else
+            ConcordAppleRenderer.render(presentation.root, revision: revision)
+                .padding(.horizontal, 10)
+            #endif
         }
     }
 }
@@ -231,33 +234,36 @@ private struct ConcordAppleTextElementView: View {
                 validationLabel(element.label, element: element)
             }
 
-            Group {
-                if element.flavor == .password {
-                    SecureField(element.placeholder ?? "", text: binding)
-                        .textFieldStyle(.plain)
-                } else {
-                    TextField(element.placeholder ?? "", text: binding)
-                        .textFieldStyle(.plain)
+            inputField
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .foregroundColor(element.resolvedTextColor.map(appleColor))
+                .focused($isFocused)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if element.isEnabled && !element.isReadOnly {
+                        isFocused = true
+                    }
                 }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .foregroundColor(element.resolvedTextColor.map(appleColor))
-            .focused($isFocused)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if element.isEnabled && !element.isReadOnly {
-                    isFocused = true
+                .overlay {
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(fieldFrameColor, lineWidth: 1)
                 }
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(fieldFrameColor, lineWidth: 1)
-            }
 
             validationMetadata(element)
         }
         .disabled(!element.isEnabled || element.isReadOnly)
+    }
+
+    @ViewBuilder
+    private var inputField: some View {
+        if element.flavor == .password {
+            SecureField(element.placeholder ?? "", text: binding)
+                .textFieldStyle(.plain)
+        } else {
+            TextField(element.placeholder ?? "", text: binding)
+                .textFieldStyle(.plain)
+        }
     }
 }
 
@@ -1475,32 +1481,8 @@ private struct ConcordAppleABStackView: View {
     #endif
 
     var body: some View {
-        Group {
-            if usesHorizontalLayout {
-                if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) {
-                    ConcordAppleABHorizontalLayout(
-                        aFraction: element.aFraction,
-                        spacing: CGFloat(element.spacing)
-                    ) {
-                        ConcordAppleRenderer.render(element.a, revision: revision)
-                        ConcordAppleRenderer.render(element.b, revision: revision)
-                    }
-                } else {
-                    HStack(alignment: .top, spacing: element.spacing) {
-                        ConcordAppleRenderer.render(element.a, revision: revision)
-                            .frame(maxWidth: .infinity, alignment: .topLeading)
-                        ConcordAppleRenderer.render(element.b, revision: revision)
-                            .frame(maxWidth: .infinity, alignment: .topLeading)
-                    }
-                }
-            } else {
-                VStack(alignment: .leading, spacing: element.spacing) {
-                    ConcordAppleRenderer.render(element.a, revision: revision)
-                    ConcordAppleRenderer.render(element.b, revision: revision)
-                }
-            }
-        }
-        .padding(element.edge)
+        layoutContent
+            .padding(element.edge)
         #if os(iOS)
         .onAppear {
             UIDevice.current.beginGeneratingDeviceOrientationNotifications()
@@ -1512,6 +1494,33 @@ private struct ConcordAppleABStackView: View {
             orientation = UIDevice.current.orientation
         }
         #endif
+    }
+
+    @ViewBuilder
+    private var layoutContent: some View {
+        if usesHorizontalLayout {
+            if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) {
+                ConcordAppleABHorizontalLayout(
+                    aFraction: element.aFraction,
+                    spacing: CGFloat(element.spacing)
+                ) {
+                    ConcordAppleRenderer.render(element.a, revision: revision)
+                    ConcordAppleRenderer.render(element.b, revision: revision)
+                }
+            } else {
+                HStack(alignment: .top, spacing: element.spacing) {
+                    ConcordAppleRenderer.render(element.a, revision: revision)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                    ConcordAppleRenderer.render(element.b, revision: revision)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+            }
+        } else {
+            VStack(alignment: .leading, spacing: element.spacing) {
+                ConcordAppleRenderer.render(element.a, revision: revision)
+                ConcordAppleRenderer.render(element.b, revision: revision)
+            }
+        }
     }
 
     private var usesHorizontalLayout: Bool {
