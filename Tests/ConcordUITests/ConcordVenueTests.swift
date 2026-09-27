@@ -654,9 +654,10 @@ func standardGetStartedDisplaysSummariesAndAccess() {
     #expect(centerAccessButton?.foregroundColor == .accent)
     #expect(accessButton?.title == "Website")
     #expect(accessButton?.presentation == .button)
-    #expect(workStack?.bottom.horizontalJustification == .left)
-    #expect(workStack?.bottom.elements.count == 1)
-    #expect(workStack?.bottom.elements.first is ConcordAccessButton)
+    #expect(workStack?.bottom.horizontalJustification == .center)
+    #expect(workStack?.bottom.elements.count == 3)
+    #expect(workStack?.bottom.elements.first is ConcordSpacer)
+    #expect(workStack?.bottom.elements.last is ConcordSpacer)
 }
 
 @Test("Mobile Get Started leaves footer access left without center access")
@@ -807,7 +808,8 @@ func standardFAQDisplaysQuestionsAndAccess() {
     application.showFAQFeature()
 
     let venue = application.secondaryVenue(id: ConcordVenueID.faq)
-    let workStack = venue?.currentPresentation?.root as? ConcordWorkStack
+    let root = venue?.currentPresentation?.root as? ConcordVStack
+    let workStack = root?.elements.first as? ConcordWorkStack
     let groupTitle = workStack?.main.elements.first as? ConcordText
     let firstQuestion = workStack?.main.elements.dropFirst().first as? ConcordExpander
     let answer = firstQuestion?.elements.first as? ConcordText
@@ -916,9 +918,9 @@ func standardAboutDisplaysAccessAndCloses() {
     #expect(venue?.config.initialSize == ConcordVenueSize(576, 354))
     #expect(venue?.config.dismissAble == true)
     #expect(workStack?.bottomHeight == ConcordWorkStack.defaultBottomHeight)
-    #expect(workStack?.bottom.horizontalJustification == .center)
-    #expect(workStack?.bottom.elements.first is ConcordSpacer)
-    #expect(workStack?.bottom.elements.last is ConcordSpacer)
+    #expect(workStack?.bottom.horizontalJustification == .left)
+    #expect(workStack?.bottom.elements.count == 1)
+    #expect(workStack?.bottom.elements.first is ConcordAccessButton)
     #expect(identity?.aFraction == 0.4)
     #expect((identity?.a.elements.first as? ConcordImage)?.fillsSquare == true)
     #expect(accessButton?.title == "License Agreement")
