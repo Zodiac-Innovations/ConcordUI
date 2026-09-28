@@ -25,3 +25,9 @@ Depend on `ConcordUI` for shared application code. Apple hosts also depend on `C
 - `Tests/ConcordUITests` — Core unit tests.
 
 License: [Apache 2.0](LICENSE).
+
+## Android project generator
+
+`Tools/AndroidGenerator` contains the Android glue and project-generation code. `concordui android create` clones the `repo` and `branch` recorded in `ConcordUI.info`, runs this Swift package, and generates the project's `Android/` folder and Swift package manifest. Android glue changes can therefore be published in this repository without rebuilding the ConcordUI CLI. The developer needs Git, a host Swift toolchain, Gradle, and Android tooling; the generator compiles locally when invoked. Use `concordui android create -d` to replace an existing generated Android project after updating this repository. Back up project-specific edits inside `Android/` before regenerating.
+
+The generated application's `Package.swift` also points to the selected `repo` and `branch`. An experiment repository must include both the ConcordUI Swift products and `Tools/AndroidGenerator`.
