@@ -1,0 +1,22 @@
+name: Android Generator
+
+on:
+  pull_request:
+    paths:
+      - 'Tools/AndroidGenerator/**'
+      - '.github/workflows/android-generator.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Tools/AndroidGenerator/**'
+      - '.github/workflows/android-generator.yml'
+
+jobs:
+  test:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Android project generator
+        run: xcrun swift test --package-path Tools/AndroidGenerator
+      - name: Generate an Android project
+        run: bash Tools/AndroidGenerator/Tests/integration.sh
