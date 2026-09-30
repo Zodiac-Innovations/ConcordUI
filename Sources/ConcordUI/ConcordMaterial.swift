@@ -1,19 +1,19 @@
 //
 //  ConcordMaterial.swift
-//  ConcordUI
+//  Concord
 //
-//  Platform-independent drawing materials and framework material defaults.
+//  Shared portable material contract. Substitute only the project prefix.
 //
 
 import Foundation
 
-public enum ConcordMaterialType: Codable, Sendable, Equatable {
+public enum ConcordMaterialType: Codable, Sendable, Hashable {
     case color(ConcordColor)
     case registered(key: String)
     case image(name: String)
 }
 
-public struct ConcordMaterial: Codable, Sendable, Equatable {
+public struct ConcordMaterial: Codable, Sendable, Hashable {
     public var type: ConcordMaterialType
 
     public init(type: ConcordMaterialType) {
@@ -34,81 +34,6 @@ public struct ConcordMaterial: Codable, Sendable, Equatable {
 
     public static let black = ConcordMaterial.color(.black)
 
-    // MARK: Reserved framework keys
-
-    public static let requiredIndicatorKey = "concordui-required-indicator"
-    public static let invalidIndicatorKey = "concordui-invalid-indicator"
-    public static let fieldFrameKey = "concordui-field-frame"
-    public static let destructiveActionKey = "concordui-destructive-action"
-    public static let accessAccentKey = "concordui-access-accent"
-    public static let featureAccentKey = "concordui-feature-accent"
-    public static let buttonBackgroundKey = "concordui-button-background"
-    public static let buttonForegroundKey = "concordui-button-foreground"
-    public static let buttonFrameKey = "concordui-button-frame"
-    public static let rasterBackgroundKey = "concordui-raster-background"
-    public static let overlappingImagesBackgroundKey = "concordui-overlapping-images-background"
-    public static let workStackUpperBackgroundKey = "concordui-work-stack-upper-background"
-    public static let workStackLowerBackgroundKey = "concordui-work-stack-lower-background"
-
-    public static let requiredIndicator = ConcordMaterial.registered(requiredIndicatorKey)
-    public static let invalidIndicator = ConcordMaterial.registered(invalidIndicatorKey)
-    public static let fieldFrame = ConcordMaterial.registered(fieldFrameKey)
-    public static let destructiveAction = ConcordMaterial.registered(destructiveActionKey)
-    public static let accessAccent = ConcordMaterial.registered(accessAccentKey)
-    public static let featureAccent = ConcordMaterial.registered(featureAccentKey)
-    public static let buttonBackground = ConcordMaterial.registered(buttonBackgroundKey)
-    public static let buttonForeground = ConcordMaterial.registered(buttonForegroundKey)
-    public static let buttonFrame = ConcordMaterial.registered(buttonFrameKey)
-    public static let rasterBackground = ConcordMaterial.registered(rasterBackgroundKey)
-    public static let overlappingImagesBackground = ConcordMaterial.registered(overlappingImagesBackgroundKey)
-    public static let workStackUpperBackground = ConcordMaterial.registered(workStackUpperBackgroundKey)
-    public static let workStackLowerBackground = ConcordMaterial.registered(workStackLowerBackgroundKey)
-
-    internal static let reservedKeys: Set<String> = [
-        requiredIndicatorKey,
-        invalidIndicatorKey,
-        fieldFrameKey,
-        destructiveActionKey,
-        accessAccentKey,
-        featureAccentKey,
-        buttonBackgroundKey,
-        buttonForegroundKey,
-        buttonFrameKey,
-        rasterBackgroundKey,
-        overlappingImagesBackgroundKey,
-        workStackUpperBackgroundKey,
-        workStackLowerBackgroundKey,
-    ]
-
-    /// Restores every ConcordUI default. Applications may override any predefined
-    /// key by registering another terminal material after application creation.
-    public static func registerMaterials(
-        in registry: ConcordMaterialRegistry = .shared
-    ) {
-        registry.register(key: requiredIndicatorKey, material: .color(.red))
-        registry.register(key: invalidIndicatorKey, material: .color(.error))
-        registry.register(
-            key: fieldFrameKey,
-            material: .color(.rgba(0.5, 0.5, 0.5, 0.45))
-        )
-        registry.register(key: destructiveActionKey, material: .color(.error))
-        registry.register(key: accessAccentKey, material: .color(.accent))
-        registry.register(key: featureAccentKey, material: .color(.accent))
-        registry.register(key: buttonBackgroundKey, material: .color(.accent))
-        registry.register(key: buttonForegroundKey, material: .color(.white))
-        registry.register(
-            key: buttonFrameKey,
-            material: .color(.rgba(0.5, 0.5, 0.5, 0.35))
-        )
-        registry.register(key: rasterBackgroundKey, material: .color(.white))
-        registry.register(key: overlappingImagesBackgroundKey, material: .color(.white))
-        registry.register(key: workStackUpperBackgroundKey, material: .color(.clear))
-        registry.register(
-            key: workStackLowerBackgroundKey,
-            material: .color(.rgba(0.5, 0.5, 0.5, 0.14))
-        )
-    }
-
     public static func resolvedColor(
         _ material: ConcordMaterial,
         in registry: ConcordMaterialRegistry = .shared
@@ -121,6 +46,9 @@ public struct ConcordMaterial: Codable, Sendable, Equatable {
     }
 }
 
+
+/// Thread-safe registry of terminal color or image materials.
+/// A registered key is a reference and cannot itself be registered as a value.
 public final class ConcordMaterialRegistry: @unchecked Sendable {
     public static let shared = ConcordMaterialRegistry()
 
@@ -129,26 +57,43 @@ public final class ConcordMaterialRegistry: @unchecked Sendable {
 
     public init() {}
 
-    public func register(key: String, material: ConcordMaterial) {
-        precondition(
-            !key.hasPrefix("concordui-") || ConcordMaterial.reservedKeys.contains(key),
-            "Material keys beginning with 'concordui-' are reserved by ConcordUI."
-        )
+    /// Registers or replaces a terminal material. Invalid input returns false
+    /// and leaves any existing value unchanged.
+    @discardableResult
+    public func register(key: String, material: ConcordMaterial) -> Bool {
+        guard !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        switch material.type {
+        case .registered: return false
+        case .image(let name):
+            guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        case .color: break
+        }
         lock.lock()
+        defer { lock.unlock() }
         materials[key] = material
-        lock.unlock()
+        return true
+    }
+
+    @discardableResult
+    public func register(key: String, color: ConcordColor) -> Bool {
+        register(key: key, material: .color(color))
+    }
+
+    @discardableResult
+    public func register(key: String, imageName: String) -> Bool {
+        register(key: key, material: .image(imageName))
     }
 
     public func remove(key: String) {
         lock.lock()
+        defer { lock.unlock() }
         materials.removeValue(forKey: key)
-        lock.unlock()
     }
 
     public func removeAll() {
         lock.lock()
+        defer { lock.unlock() }
         materials.removeAll()
-        lock.unlock()
     }
 
     public func material(forKey key: String) -> ConcordMaterial? {
@@ -157,21 +102,9 @@ public final class ConcordMaterialRegistry: @unchecked Sendable {
         return materials[key]
     }
 
+    /// Resolves a key to its terminal value. Unknown keys use opaque black.
     public func resolve(_ material: ConcordMaterial) -> ConcordMaterial {
-        guard case .registered(let key) = material.type else {
-            return material
-        }
-
-        lock.lock()
-        let registeredMaterial = materials[key]
-        lock.unlock()
-
-        guard let registeredMaterial else {
-            return .black
-        }
-        if case .registered = registeredMaterial.type {
-            return .black
-        }
-        return registeredMaterial
+        guard case .registered(let key) = material.type else { return material }
+        return self.material(forKey: key) ?? .black
     }
 }

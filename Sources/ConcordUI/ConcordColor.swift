@@ -1,14 +1,14 @@
 //
 //  ConcordColor.swift
-//  ConcordUI
+//  Concord
 //
-//  Portable color values and application-wide theme defaults.
+//  Shared portable color contract. Substitute only the project prefix.
 //
 
 import Foundation
 
 /// Semantic colors that each native platform resolves using its current appearance/theme.
-public enum ConcordSemanticColor: String, Codable, Sendable, Equatable {
+public enum ConcordSemanticColor: String, Codable, Sendable, Hashable {
     case primary
     case secondary
     case accent
@@ -18,8 +18,8 @@ public enum ConcordSemanticColor: String, Codable, Sendable, Equatable {
     case success
 }
 
-/// Portable color used by ConcordUI presentation capabilities.
-public enum ConcordColor: Codable, Sendable, Equatable {
+/// Portable color: explicit RGBA components or a platform-resolved semantic color.
+public enum ConcordColor: Codable, Sendable, Hashable {
     case semantic(ConcordSemanticColor)
     case rgba(red: Double, green: Double, blue: Double, alpha: Double)
 
@@ -50,26 +50,3 @@ public enum ConcordColor: Codable, Sendable, Equatable {
     }
 }
 
-/// Application-wide color defaults. Any nil value leaves that role to the native platform.
-/// Individual element color modifiers override the corresponding theme value.
-public struct ConcordTheme: Sendable, Equatable {
-    public var foregroundColor: ConcordColor?
-    public var backgroundColor: ConcordColor?
-    public var frameColor: ConcordColor?
-    public var textColor: ConcordColor?
-
-    public init(
-        foregroundColor: ConcordColor? = nil,
-        backgroundColor: ConcordColor? = nil,
-        frameColor: ConcordColor? = nil,
-        textColor: ConcordColor? = nil
-    ) {
-        self.foregroundColor = foregroundColor
-        self.backgroundColor = backgroundColor
-        self.frameColor = frameColor
-        self.textColor = textColor
-    }
-
-    /// Native platform defaults with no ConcordUI color overrides.
-    public static let system = ConcordTheme()
-}
