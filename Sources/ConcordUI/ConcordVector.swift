@@ -1,8 +1,9 @@
 //
 //  ConcordVector.swift
-//  ConcordUI
+//  Concord
 //
 //  Platform-independent vector drawing definitions.
+//  Keep this contract identical across projects after substituting the project prefix.
 //
 
 import Foundation
