@@ -321,6 +321,7 @@ private final class ConcordAppleModalVenueHost {
     private weak var parentWindow: NSWindow?
     private let flavor: ConcordModalVenueFlavor
     private var isRunningModal = false
+    private var isModalScheduled = false
 
     init(
         presentation: ConcordPresentation,
@@ -392,13 +393,23 @@ private final class ConcordAppleModalVenueHost {
                 window.center()
             }
             window.makeKeyAndOrderFront(nil)
-            isRunningModal = true
-            _ = NSApp.runModal(for: window)
-            isRunningModal = false
+            guard !isRunningModal, !isModalScheduled else { return }
+            isModalScheduled = true
+            // Return from the opening SwiftUI button action before entering
+            // AppKit's nested modal loop, so SwiftUI can finish that action.
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.isModalScheduled else { return }
+                self.isModalScheduled = false
+                guard self.window.isVisible else { return }
+                self.isRunningModal = true
+                _ = NSApp.runModal(for: self.window)
+                self.isRunningModal = false
+            }
         }
     }
 
     func close() {
+        isModalScheduled = false
         if isRunningModal { NSApp.stopModal() }
         if window.sheetParent != nil {
             window.sheetParent?.endSheet(window)
