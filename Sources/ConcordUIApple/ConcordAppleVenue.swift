@@ -334,7 +334,7 @@ private final class ConcordAppleModalVenueHost {
         platform.displayPresentation(presentation)
 
         let initial = modal.config.initialSize ?? ConcordVenueSize(420, 280)
-        let window = NSWindow(
+        let window = NSPanel(
             contentRect: NSRect(
                 x: 0,
                 y: 0,
@@ -345,6 +345,10 @@ private final class ConcordAppleModalVenueHost {
             backing: .buffered,
             defer: false
         )
+        // The dialog runs an AppKit modal session. Allow its hosted SwiftUI
+        // controls to receive events while that session is active.
+        window.worksWhenModal = true
+        window.becomesKeyOnlyIfNeeded = false
         self.window = window
         window.isReleasedWhenClosed = false
         window.title = modal.config.name ?? ""
