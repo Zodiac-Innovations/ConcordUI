@@ -1,5 +1,7 @@
 # ConcordUI
 
+**Developer Release 1 — version 1.0.0 (Release 1.00).**
+
 <https://github.com/Zodiac-Innovations/ConcordUI>
 
 Shared Swift UI framework and native Apple renderer for ConcordUI applications.
@@ -13,10 +15,18 @@ Android applications use the shared `ConcordUI` library together with the Androi
 Add this repository as a package dependency in Xcode or in a Swift package:
 
 ```swift
-.package(url: "https://github.com/Zodiac-Innovations/ConcordUI.git", branch: "main")
+.package(url: "https://github.com/Zodiac-Innovations/ConcordUI.git", exact: "1.0.0")
 ```
 
 Depend on `ConcordUI` for shared application code. Apple hosts also depend on `ConcordUIApple`. This repository contains the package sources and Core tests; complete applications and screenshots are in [ConcordUIExamples](https://github.com/Zodiac-Innovations/ConcordUIExamples).
+
+## Release policy
+
+The Swift Package version for Developer Release 1 is `1.0.0`. Its Git tag is `1.0.0`; once published, this tag must never be moved or reused. The exact dependency above pins applications to that release.
+
+The `release/1.0` branch preserves the release line and accepts only reviewed maintenance fixes, published under new patch tags such as `1.0.1`. It is a moving maintenance branch, so use an exact version for a frozen dependency. `main` remains the integration branch. Experimental framework development belongs in [ConcordUIExperiment](https://github.com/Zodiac-Innovations/ConcordUIExperiment).
+
+For the current Android generator, set the project’s `ConcordUI.info` branch to `release/1.0` to follow this maintenance line. The generator currently selects a branch; the Swift Package tag pins Apple package dependencies.
 
 ## Source layout
 
